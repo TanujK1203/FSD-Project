@@ -1,0 +1,355 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum StoreStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum SourceType {
+  SHOPIFY
+  WOOCOMMERCE
+  GENERIC
+  INSTAGRAM
+  MANUAL
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PAYMENT_FAILED
+  CANCELLED
+}
+
+enum FulfillmentStatus {
+  PLACED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  CREATED
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum PayoutStatus {
+  ON_HOLD
+  READY
+  SETTLED
+  CANCELLED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  phone        String?
+  passwordHash String
+  role         Role      @default(BUYER)
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+  addresses    Address[]
+  store        Store?
+  cart         Cart?
+  orders       Order[]
+  reviews      Review[]
+}
+
+model Session {
+  id        String   @id // sha256 of the cookie token
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Store {
+  id               String        @id @default(cuid())
+  ownerId          String        @unique
+  owner            User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name             String
+  slug             String        @unique
+  bio              String?
+  city             String?
+  instagramHandle  String?
+  logoUrl          String?
+  status           StoreStatus   @default(PENDING)
+  rejectionReason  String?
+  sourceType       SourceType    @default(MANUAL)
+  sourceUrl        String?
+  igUserId         String?
+  igToken          String? // AES-GCM encrypted
+  igTokenExpiresAt DateTime?
+  payoutUpi        String?
+  lastSyncedAt     DateTime?
+  approvedAt       DateTime?
+  createdAt        DateTime      @default(now())
+  products         Product[]
+  importJobs       ImportJob[]
+  sellerOrders     SellerOrder[]
+  payouts          Payout[]
+
+  @@index([status])
+}
+
+model Product {
+  id             String           @id @default(cuid())
+  storeId        String
+  store          Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  title          String
+  slug           String           @unique
+  description    String           @default("")
+  category       String           @default("other")
+  tags           String           @default("")
+  pricePaise     Int
+  compareAtPaise Int?
+  status         ProductStatus    @default(DRAFT)
+  sourceId       String?
+  sourceUrl      String?
+  needsReview    String? // why a draft needs attention, e.g. "Price missing"
+  searchText     String           @default("")
+  ratingAvg      Float            @default(0)
+  ratingCount    Int              @default(0)
+  publishedAt    DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  variants       ProductVariant[]
+  images         ProductImage[]
+  reviews        Review[]
+  orderItems     OrderItem[]
+
+  @@unique([storeId, sourceId])
+  @@index([status, category])
+  @@index([storeId, status])
+}
+
+model ProductVariant {
+  id          String     @id @default(cuid())
+  productId   String
+  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String     @default("Default")
+  optionsJson String     @default("{}") // {"Size":"M","Colour":"Red"}
+  pricePaise  Int
+  stock       Int? // null = not tracked
+  available   Boolean    @default(true)
+  sku         String?
+  sourceId    String?
+  position    Int        @default(0)
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+
+  @@index([productId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  position  Int     @default(0)
+
+  @@index([productId])
+}
+
+model ImportJob {
+  id         String     @id @default(cuid())
+  storeId    String
+  store      Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  sourceUrl  String
+  adapter    String?
+  kind       String     @default("initial") // initial | resync
+  status     JobStatus  @default(QUEUED)
+  found      Int        @default(0)
+  created    Int        @default(0)
+  updated    Int        @default(0)
+  skipped    Int        @default(0)
+  failed     Int        @default(0)
+  logJson    String     @default("[]")
+  error      String?
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@index([storeId, createdAt])
+  @@index([status])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?    @unique
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestId   String?    @unique
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String         @id @default(cuid())
+  cartId    String
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  quantity  Int
+  createdAt DateTime       @default(now())
+
+  @@unique([cartId, variantId])
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  number        String        @unique
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  addressJson   String
+  subtotalPaise Int
+  shippingPaise Int
+  totalPaise    Int
+  status        OrderStatus   @default(PENDING_PAYMENT)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  sellerOrders  SellerOrder[]
+  payment       Payment?
+
+  @@index([userId, createdAt])
+}
+
+model SellerOrder {
+  id             String            @id @default(cuid())
+  orderId        String
+  order          Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  storeId        String
+  store          Store             @relation(fields: [storeId], references: [id])
+  subtotalPaise  Int
+  shippingPaise  Int
+  status         FulfillmentStatus @default(PLACED)
+  carrier        String?
+  trackingNumber String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  items          OrderItem[]
+  events         OrderEvent[]
+  payout         Payout?
+
+  @@index([storeId, createdAt])
+}
+
+model OrderItem {
+  id            String          @id @default(cuid())
+  sellerOrderId String
+  sellerOrder   SellerOrder     @relation(fields: [sellerOrderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product         @relation(fields: [productId], references: [id])
+  variantId     String
+  variant       ProductVariant  @relation(fields: [variantId], references: [id])
+  title         String
+  variantName   String
+  imageUrl      String?
+  unitPaise     Int
+  quantity      Int
+  review        Review?
+}
+
+model OrderEvent {
+  id            String            @id @default(cuid())
+  sellerOrderId String
+  sellerOrder   SellerOrder       @relation(fields: [sellerOrderId], references: [id], onDelete: Cascade)
+  status        FulfillmentStatus
+  note          String?
+  createdAt     DateTime          @default(now())
+
+  @@index([sellerOrderId])
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  orderId     String        @unique
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider    String
+  providerRef String?
+  amountPaise Int
+  status      PaymentStatus @default(CREATED)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Payout {
+  id              String       @id @default(cuid())
+  storeId         String
+  store           Store        @relation(fields: [storeId], references: [id])
+  sellerOrderId   String       @unique
+  sellerOrder     SellerOrder  @relation(fields: [sellerOrderId], references: [id], onDelete: Cascade)
+  grossPaise      Int
+  commissionPaise Int
+  netPaise        Int
+  status          PayoutStatus @default(ON_HOLD)
+  settledAt       DateTime?
+  createdAt       DateTime     @default(now())
+
+  @@index([storeId, status])
+}
+
+model Review {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItemId String    @unique
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  rating      Int
+  body        String?
+  createdAt   DateTime  @default(now())
+
+  @@index([productId])
+}

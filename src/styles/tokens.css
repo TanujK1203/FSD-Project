@@ -1,0 +1,104 @@
+/* Design tokens. Contrast pairs verified (WCAG):
+   light: ink/bg 17.0, ink-2/bg 6.3, on-accent/accent 5.1, accent-ink/bg 6.0, tint-ink/tint 6.0
+   dark:  ink/bg 15.9, ink-2/bg 7.6, on-accent/accent 5.1, accent-ink/bg 7.8, tint-ink/tint 7.6 */
+
+:root {
+  color-scheme: light;
+  --bg: #f7f7f6;
+  --surface: #fdfdfc;
+  --surface-2: #efeeec;
+  --ink: #151515;
+  --ink-2: #5b5b5b;
+  --ink-3: #8a8a8a;
+  --line: #e3e2df;
+  --line-strong: #c9c7c2;
+  --accent: #c8383a;
+  --accent-hover: #b33033;
+  --accent-ink: #b02e30;
+  --accent-tint: #fcebea;
+  --accent-tint-ink: #a82a2d;
+  --on-accent: #fffdfc;
+  --focus: #151515;
+  --scrim: rgb(21 21 21 / 0.4);
+
+  --font: var(--font-albert), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: 1.3125rem;
+  --fs-xl: 1.625rem;
+  --fs-2xl: 2.0625rem;
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+
+  --r-sm: 4px;
+  --r: 6px;
+  --r-pill: 999px;
+
+  --container: 1200px;
+  --gutter: 16px;
+  --header-h: 56px;
+  --tabbar-h: 60px;
+
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 160ms;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 24px;
+    --header-h: 64px;
+    --fs-base: 1rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121212;
+    --surface: #1a1a1a;
+    --surface-2: #242423;
+    --ink: #edecea;
+    --ink-2: #a6a5a2;
+    --ink-3: #77756f;
+    --line: #2c2c2b;
+    --line-strong: #464543;
+    --accent: #c8383a;
+    --accent-hover: #d64547;
+    --accent-ink: #f08a86;
+    --accent-tint: #3a1f1f;
+    --accent-tint-ink: #f5a3a0;
+    --on-accent: #fffdfc;
+    --focus: #edecea;
+    --scrim: rgb(0 0 0 / 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121212;
+  --surface: #1a1a1a;
+  --surface-2: #242423;
+  --ink: #edecea;
+  --ink-2: #a6a5a2;
+  --ink-3: #77756f;
+  --line: #2c2c2b;
+  --line-strong: #464543;
+  --accent: #c8383a;
+  --accent-hover: #d64547;
+  --accent-ink: #f08a86;
+  --accent-tint: #3a1f1f;
+  --accent-tint-ink: #f5a3a0;
+  --on-accent: #fffdfc;
+  --focus: #edecea;
+  --scrim: rgb(0 0 0 / 0.6);
+}

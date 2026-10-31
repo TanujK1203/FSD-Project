@@ -1,0 +1,102 @@
+.layout {
+  display: grid;
+  gap: var(--s5);
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: var(--s6);
+    align-items: start;
+  }
+  .summary {
+    position: sticky;
+    top: calc(var(--header-h) + var(--s4));
+  }
+}
+
+.group {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+}
+
+.groupHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s3);
+  padding: 12px var(--s4);
+  border-bottom: 1px solid var(--line);
+}
+
+.line {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  align-items: start;
+}
+
+.lineInfo {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  justify-items: start;
+}
+
+.lineTitle {
+  font-weight: 500;
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+}
+
+.lineActions {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-top: 6px;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  height: 34px;
+  overflow: hidden;
+}
+
+.stepper button {
+  width: 34px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.stepper button:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.stepper button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stepper span {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.hint {
+  padding: 0 var(--s4) var(--s3);
+}
+
+.summary {
+  display: grid;
+  gap: var(--s4);
+}
