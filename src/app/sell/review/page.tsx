@@ -18,6 +18,7 @@ export default async function ReviewPage() {
     include: { images: { orderBy: { position: "asc" }, take: 1 }, _count: { select: { variants: true } } },
     take: 300,
   });
+  const total = drafts.length < 300 ? drafts.length : await db.product.count({ where: { storeId: store.id, status: "DRAFT" } });
   const flagged = drafts.filter((d) => d.needsReview).length;
 
   return (
@@ -27,10 +28,16 @@ export default async function ReviewPage() {
         <h1>Check and publish</h1>
         <p className="muted">
           {drafts.length
-            ? `${drafts.length} drafts${flagged ? `, ${flagged} need a look` : ""}. Edit anything that came through wrong, then publish.`
+            ? `${total} drafts${flagged ? `, ${flagged} need a look` : ""}. Edit anything that came through wrong, then publish.`
             : "No drafts waiting."}
         </p>
       </div>
+
+      {total > drafts.length && (
+        <div className="notice">
+          Showing the first {drafts.length}. Publish or delete these and the other {total - drafts.length} appear here.
+        </div>
+      )}
 
       {store.status !== "APPROVED" && (
         <div className="notice">

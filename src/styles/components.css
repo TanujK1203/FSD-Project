@@ -834,6 +834,16 @@
   font-size: var(--fs-lg);
 }
 
+/* logos are drawn for a white background and must not be cropped */
+.avatar--logo {
+  background: var(--logo-bg);
+}
+
+.avatar--logo img {
+  object-fit: contain;
+  padding: 10%;
+}
+
 /* tables (seller + admin) */
 
 .table-wrap {

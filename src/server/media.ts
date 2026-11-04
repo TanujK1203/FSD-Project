@@ -14,7 +14,8 @@ const TYPES: Record<string, string> = {
   "image/avif": "avif",
 };
 
-function sniff(buf: Buffer): string | null {
+/** The image type read from the file's first bytes, or null when it is not a supported image. */
+export function sniff(buf: Buffer): string | null {
   if (buf[0] === 0xff && buf[1] === 0xd8) return "image/jpeg";
   if (buf.subarray(0, 8).toString("hex") === "89504e470d0a1a0a") return "image/png";
   if (buf.subarray(0, 4).toString() === "RIFF" && buf.subarray(8, 12).toString() === "WEBP") return "image/webp";

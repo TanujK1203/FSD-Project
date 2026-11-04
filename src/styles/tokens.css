@@ -21,6 +21,8 @@
   --focus: #151515;
   --scrim: rgb(21 21 21 / 0.4);
   --peek-shadow: 0 0 22px 4px rgb(165 168 175 / 0.75);
+  /* store logos are made for a light background, so this stays light in dark mode */
+  --logo-bg: #fdfdfc;
 
   --font: var(--font-albert), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 

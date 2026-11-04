@@ -84,13 +84,24 @@ export async function getHome() {
         logoUrl: true,
         city: true,
         _count: { select: { products: { where: { status: "PUBLISHED" } } } },
+        // stores without a logo show their newest product photo instead
+        products: {
+          where: { status: "PUBLISHED", images: { some: {} } },
+          orderBy: { publishedAt: "desc" },
+          take: 1,
+          select: { images: { orderBy: { position: "asc" }, take: 1, select: { url: true } } },
+        },
       },
     }),
     db.product.groupBy({ by: ["category"], where: visibleProduct, _count: { _all: true } }),
   ]);
   return {
     latest: latest.map(toCard),
-    stores,
+    stores: stores.map(({ products, ...s }) => ({
+      ...s,
+      thumbUrl: s.logoUrl ?? products[0]?.images[0]?.url ?? null,
+      isLogo: !!s.logoUrl,
+    })),
     categories: new Map(categoryCounts.map((c) => [c.category, c._count._all])),
   };
 }

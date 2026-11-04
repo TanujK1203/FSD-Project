@@ -42,8 +42,12 @@ export default async function Home() {
               {stores.map((s) => (
                 <li key={s.slug}>
                   <Link href={`/s/${s.slug}`} className={styles.store}>
-                    <span className="avatar avatar--lg">
-                      {s.logoUrl ? <img src={s.logoUrl} alt="" referrerPolicy="no-referrer" /> : initials(s.name)}
+                    <span className={`avatar avatar--lg${s.isLogo ? " avatar--logo" : ""}`}>
+                      {s.thumbUrl ? (
+                        <img src={s.thumbUrl} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                      ) : (
+                        initials(s.name)
+                      )}
                     </span>
                     <span className={styles.storeName}>{s.name}</span>
                     <span className="xsmall muted num">{s._count.products} items</span>

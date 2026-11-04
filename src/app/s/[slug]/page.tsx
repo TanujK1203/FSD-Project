@@ -25,7 +25,7 @@ export default async function StorePage({ params, searchParams }: Props) {
   return (
     <div className="container stack-lg">
       <header className="row" style={{ gap: "var(--s4)", alignItems: "center" }}>
-        <span className="avatar avatar--lg">
+        <span className={`avatar avatar--lg${store.logoUrl ? " avatar--logo" : ""}`}>
           {store.logoUrl ? <img src={store.logoUrl} alt="" referrerPolicy="no-referrer" /> : initials(store.name)}
         </span>
         <div className="stack-sm" style={{ gap: 4 }}>

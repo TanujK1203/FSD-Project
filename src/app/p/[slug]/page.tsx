@@ -118,7 +118,7 @@ export default async function ProductPage({ params }: Props) {
       )}
 
       <section className={styles.seller}>
-        <span className="avatar">
+        <span className={`avatar${product.store.logoUrl ? " avatar--logo" : ""}`}>
           {product.store.logoUrl ? <img src={product.store.logoUrl} alt="" referrerPolicy="no-referrer" /> : initials(product.store.name)}
         </span>
         <div>

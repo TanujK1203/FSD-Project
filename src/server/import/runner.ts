@@ -7,6 +7,7 @@ import { getExtractor } from "./llm";
 import { saveRemoteImage } from "../media";
 import { markMissingSoldOut, saveImported } from "./save";
 import { closeBrowser } from "./render";
+import { findInstagramPicture, findSiteLogo } from "./logo";
 import type { AdapterName, ImportContext, LogLevel } from "./types";
 
 export type JobLogLine = { t: number; level: LogLevel; msg: string };
@@ -154,6 +155,7 @@ export async function runImportJob(jobId: string) {
         ...(adapterName !== "instagram" ? { sourceUrl: url.origin } : {}),
       },
     });
+    if (!job.store.logoUrl) await saveStoreLogo(job.storeId, adapterName === "instagram" ? null : url.origin, instagram);
   } catch (e) {
     const message = (e as Error).message || "Import failed";
     log(message, "error");
@@ -166,6 +168,22 @@ export async function runImportJob(jobId: string) {
     // free the browser between jobs when nothing else is running
     if (running.size === 0) await closeBrowser();
   }
+}
+
+/** Use the store's own logo (or Instagram profile picture) for its circle, unless the seller uploaded one. */
+async function saveStoreLogo(storeId: string, origin: string | null, instagram: ImportContext["instagram"]) {
+  try {
+    let logoUrl: string | null = null;
+    if (origin) {
+      logoUrl = await findSiteLogo(origin);
+    } else if (instagram) {
+      // Instagram picture links expire, so keep our own copy
+      const src = await findInstagramPicture(instagram.accessToken);
+      if (src) logoUrl = await saveRemoteImage(src, storeId);
+    }
+    // a seller upload during the import wins
+    if (logoUrl) await db.store.updateMany({ where: { id: storeId, logoUrl: null }, data: { logoUrl } });
+  } catch {}
 }
 
 /** Pick up jobs left queued (e.g. after a restart) and resync stores daily. */

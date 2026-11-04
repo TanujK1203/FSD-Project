@@ -48,13 +48,28 @@ const V4_BLOCKED = [
   "240.0.0.0/4",
 ];
 
+/** The IPv4 address in the last 32 bits, written either dotted ("1.2.3.4") or as two hex groups ("102:304"). */
+function embeddedV4(tail: string): string | null {
+  if (net.isIPv4(tail)) return tail;
+  const m = tail.match(/^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (!m) return null;
+  const hi = parseInt(m[1]!, 16);
+  const lo = parseInt(m[2]!, 16);
+  return [hi >> 8, hi & 255, lo >> 8, lo & 255].join(".");
+}
+
 /** True for loopback, private, link-local, CGNAT, multicast and other non-public addresses. */
 export function isPrivateIp(ip: string): boolean {
   if (net.isIPv4(ip)) return V4_BLOCKED.some((c) => inV4Range(ip, c));
   if (net.isIPv6(ip)) {
     const lower = ip.toLowerCase();
-    const mapped = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-    if (mapped) return isPrivateIp(mapped[1]!);
+    // IPv4-mapped (::ffff:a.b.c.d) and NAT64 (64:ff9b::a.b.c.d, used by IPv6-only networks such as
+    // mobile hotspots) carry a real IPv4 address, so judge that address instead
+    const wrapped = lower.match(/^(?:::ffff:|64:ff9b::)(.+)$/);
+    if (wrapped) {
+      const v4 = embeddedV4(wrapped[1]!);
+      return v4 ? isPrivateIp(v4) : true;
+    }
     if (lower === "::" || lower === "::1") return true;
     const first = parseInt(lower.split(":")[0] || "0", 16);
     if ((first & 0xfe00) === 0xfc00) return true; // fc00::/7 unique local
