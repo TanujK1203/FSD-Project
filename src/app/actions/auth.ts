@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/server/db";
-import { createSession, destroySession, hashPassword, verifyPassword } from "@/server/auth";
+import { createSession, destroySession, hashPassword, homeFor, verifyPassword } from "@/server/auth";
 import { mergeGuestCart } from "@/server/cart";
 import { safeNext } from "@/lib/nav";
 
@@ -22,7 +22,14 @@ export async function signup(_prev: FormState, formData: FormData): Promise<Form
   if (!parsed.success) return { error: parsed.error.issues[0]?.message, fields };
 
   const exists = await db.user.findUnique({ where: { email: parsed.data.email } });
-  if (exists) return { error: "An account with this email already exists. Sign in instead.", fields };
+  if (exists) {
+    return {
+      error: exists.passwordHash
+        ? "An account with this email already exists. Sign in instead."
+        : "This email already has an account that uses Google. Continue with Google instead.",
+      fields,
+    };
+  }
 
   const user = await db.user.create({
     data: { name: parsed.data.name, email: parsed.data.email, passwordHash: await hashPassword(parsed.data.password) },
@@ -36,13 +43,15 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
   const user = await db.user.findUnique({ where: { email } });
+  if (user && !user.passwordHash) {
+    return { error: "This account signs in with Google. Use Continue with Google.", fields: { email } };
+  }
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return { error: "Email or password is incorrect", fields: { email } };
   }
   await createSession(user.id);
   await mergeGuestCart(user.id);
-  const fallback = user.role === "ADMIN" ? "/admin" : user.role === "SELLER" ? "/seller" : "/";
-  redirect(safeNext(formData.get("next"), fallback));
+  redirect(safeNext(formData.get("next"), homeFor(user.role)));
 }
 
 export async function logout() {

@@ -604,6 +604,21 @@
   text-underline-offset: 3px;
 }
 
+/* "or" line between Google sign-in and the email form */
+
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--line);
+}
+
 /* floating summary opened by clicking a card */
 
 .peek {

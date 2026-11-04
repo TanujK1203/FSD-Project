@@ -16,8 +16,13 @@ export async function hashPassword(password: string) {
   return bcrypt.hash(password, 11);
 }
 
-export async function verifyPassword(password: string, hash: string) {
-  return bcrypt.compare(password, hash);
+export async function verifyPassword(password: string, hash: string | null) {
+  return hash ? bcrypt.compare(password, hash) : false;
+}
+
+/** Where to send someone right after they sign in, unless they were on their way somewhere. */
+export function homeFor(role: Role) {
+  return role === "ADMIN" ? "/admin" : role === "SELLER" ? "/seller" : "/";
 }
 
 export async function createSession(userId: string) {

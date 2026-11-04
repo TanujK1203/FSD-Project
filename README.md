@@ -51,6 +51,8 @@ Known limits: sites behind bot protection (Cloudflare "checking your browser") c
 
 `src/config.ts` holds placeholder values: the site name, commission (5%), shipping per seller (₹49, free from ₹999).
 
+To turn on "Continue with Google": in Google Cloud Console create an OAuth client of type Web application, add `APP_URL/api/auth/google/callback` as an authorised redirect URI (one per address, e.g. the Render URL and `http://localhost:3000/...`), and set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. The button appears on sign in, sign up and Start selling only when both are set. A Google account with a verified email is linked to an existing account with the same email.
+
 To turn on Instagram connect, create a Meta developer app with Instagram API with Instagram Login, add `APP_URL/api/instagram/callback` as the redirect URL, and set `IG_APP_ID` and `IG_APP_SECRET`. Until the app passes Meta App Review, only Instagram accounts added as testers can connect.
 
 The AI fallback uses `claude-opus-5-5` at low effort by default; set `IMPORT_AI_MODEL=claude-haiku-5-5` for a cheaper option.

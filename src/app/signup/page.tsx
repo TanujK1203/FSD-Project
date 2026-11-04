@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/AuthForm";
+import { GoogleButton, OrDivider } from "@/components/GoogleButton";
 import { getCurrentUser } from "@/server/auth";
+import { googleConfigured } from "@/server/google";
 
 export const metadata: Metadata = { title: "Create account" };
 
@@ -15,6 +17,12 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
           <h1>Create account</h1>
           <p className="muted">One account for every store here. Your cart comes with you.</p>
         </div>
+        {googleConfigured() && (
+          <div className="stack">
+            <GoogleButton next={next} />
+            <OrDivider />
+          </div>
+        )}
         <AuthForm mode="signup" next={next} />
       </div>
     </div>

@@ -75,7 +75,8 @@ model User {
   email        String    @unique
   name         String
   phone        String?
-  passwordHash String
+  passwordHash String? // null for accounts that only sign in with Google
+  googleId     String?
   role         Role      @default(BUYER)
   createdAt    DateTime  @default(now())
   sessions     Session[]
@@ -84,6 +85,9 @@ model User {
   cart         Cart?
   orders       Order[]
   reviews      Review[]
+
+  // an index, not @unique: MongoDB treats every missing value as the same key
+  @@index([googleId])
 }
 
 model Session {
