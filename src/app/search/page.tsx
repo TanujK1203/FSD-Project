@@ -5,6 +5,7 @@ import { SORTS, searchProducts, type SearchParams } from "@/server/catalog";
 import { db } from "@/server/db";
 import { ProductGrid } from "@/components/ProductCard";
 import { SearchBox } from "@/components/SearchBox";
+import { AutoFilterForm } from "@/components/AutoFilterForm";
 import { AutoSubmitSelect, FilterSheet } from "@/components/FilterSheet";
 import styles from "./search.module.css";
 
@@ -24,16 +25,26 @@ function hrefWith(sp: SearchParams, patch: Partial<SearchParams>) {
 export default async function SearchPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const sp = await searchParams;
   const result = await searchProducts(sp);
-  const store = sp.store ? await db.store.findUnique({ where: { slug: sp.store }, select: { name: true } }) : null;
+  const stores = await db.store.findMany({
+    where: { status: "APPROVED", products: { some: { status: "PUBLISHED" } } },
+    orderBy: { name: "asc" },
+    select: { name: true, slug: true },
+  });
+  const store = stores.find((s) => s.slug === sp.store) ?? null;
   const activeCount = [sp.category, sp.min, sp.max, sp.rating, sp.store].filter(Boolean).length;
   const heading = sp.q ? `Results for “${sp.q}”` : sp.category ? categoryLabel(sp.category) : "All products";
   const pages = Math.ceil(result.total / result.pageSize);
 
+  // links on this page keep it mounted, so the sort form is keyed to redraw with the current filters
+  const formKey = JSON.stringify(sp);
+
   const filters = (
-    <form action="/search" className={styles.filters}>
+    <AutoFilterForm
+      className={styles.filters}
+      values={{ category: sp.category, store: sp.store, min: sp.min, max: sp.max, rating: sp.rating }}
+    >
       {sp.q && <input type="hidden" name="q" value={sp.q} />}
       {sp.sort && <input type="hidden" name="sort" value={sp.sort} />}
-      {sp.store && <input type="hidden" name="store" value={sp.store} />}
       <fieldset>
         <legend className="label">Category</legend>
         <div className={styles.radios}>
@@ -47,12 +58,23 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           ))}
         </div>
       </fieldset>
+      <label className="field">
+        <span>Store</span>
+        <select className="select input--sm" name="store" defaultValue={store?.slug ?? ""}>
+          <option value="">All stores</option>
+          {stores.map((s) => (
+            <option key={s.slug} value={s.slug}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+      </label>
       <fieldset>
         <legend className="label">Price (₹)</legend>
         <div className={styles.price}>
-          <input className="input input--sm" name="min" inputMode="numeric" placeholder="Min" defaultValue={sp.min} aria-label="Minimum price" />
+          <input className="input input--sm" name="min" type="number" min="0" placeholder="Min" defaultValue={sp.min} aria-label="Minimum price" />
           <span className="muted">to</span>
-          <input className="input input--sm" name="max" inputMode="numeric" placeholder="Max" defaultValue={sp.max} aria-label="Maximum price" />
+          <input className="input input--sm" name="max" type="number" min="0" placeholder="Max" defaultValue={sp.max} aria-label="Maximum price" />
         </div>
       </fieldset>
       <fieldset>
@@ -70,14 +92,16 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </div>
       </fieldset>
       <div className="row">
-        <button className="btn btn--secondary btn--sm">Apply filters</button>
+        <noscript>
+          <button className="btn btn--secondary btn--sm">Apply filters</button>
+        </noscript>
         {activeCount > 0 && (
           <Link href={hrefWith({ q: sp.q, sort: sp.sort }, {})} className="small muted">
             Clear all
           </Link>
         )}
       </div>
-    </form>
+    </AutoFilterForm>
   );
 
   return (
@@ -98,7 +122,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                 {store ? ` from ${store.name}` : ""}
               </p>
             </div>
-            <form action="/search" className={styles.sort}>
+            <form key={formKey} action="/search" className={styles.sort}>
               {Object.entries(sp)
                 .filter(([k, v]) => k !== "sort" && k !== "page" && v)
                 .map(([k, v]) => (

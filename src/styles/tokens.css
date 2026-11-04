@@ -20,6 +20,7 @@
   --on-accent: #fffdfc;
   --focus: #151515;
   --scrim: rgb(21 21 21 / 0.4);
+  --peek-shadow: 0 0 22px 4px rgb(165 168 175 / 0.75);
 
   --font: var(--font-albert), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
@@ -80,6 +81,7 @@
     --on-accent: #fffdfc;
     --focus: #edecea;
     --scrim: rgb(0 0 0 / 0.6);
+    --peek-shadow: 0 0 22px 4px rgb(255 255 255 / 0.6);
   }
 }
 
@@ -101,4 +103,5 @@
   --on-accent: #fffdfc;
   --focus: #edecea;
   --scrim: rgb(0 0 0 / 0.6);
+  --peek-shadow: 0 0 22px 4px rgb(255 255 255 / 0.6);
 }

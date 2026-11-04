@@ -1,7 +1,7 @@
 import "server-only";
 import type { Prisma } from "@prisma/client";
 import { db } from "./db";
-import { tokens } from "@/lib/text";
+import { searchWords, tokens } from "@/lib/text";
 
 export const visibleProduct: Prisma.ProductWhereInput = {
   status: "PUBLISHED",
@@ -118,22 +118,30 @@ const PAGE_SIZE = 24;
 
 export async function searchProducts(params: SearchParams) {
   const q = (params.q ?? "").trim().slice(0, 80);
-  const terms = tokens(q);
+  const terms = searchWords(q);
   const where: Prisma.ProductWhereInput = { ...visibleProduct, AND: [] };
   const and = where.AND as Prisma.ProductWhereInput[];
 
-  for (const t of terms) and.push({ searchText: { contains: t } });
+  // match from the start of a word, so "men" does not also find "women"
+  for (const t of terms) {
+    and.push({
+      OR: [{ searchText: { startsWith: t } }, { searchText: { contains: ` ${t}` } }, { searchText: { contains: `-${t}` } }],
+    });
+  }
   if (params.category) and.push({ category: params.category });
   if (params.store) and.push({ store: { slug: params.store } });
-  const min = Number(params.min);
-  const max = Number(params.max);
-  if (params.min && Number.isFinite(min)) and.push({ pricePaise: { gte: Math.round(min * 100) } });
-  if (params.max && Number.isFinite(max)) and.push({ pricePaise: { lte: Math.round(max * 100) } });
+  let min = params.min ? Number(params.min) : NaN;
+  let max = params.max ? Number(params.max) : NaN;
+  if (min > max) [min, max] = [max, min];
+  if (Number.isFinite(min)) and.push({ pricePaise: { gte: Math.round(min * 100) } });
+  if (Number.isFinite(max)) and.push({ pricePaise: { lte: Math.round(max * 100) } });
   const rating = Number(params.rating);
   if (params.rating && Number.isFinite(rating)) and.push({ ratingAvg: { gte: rating }, ratingCount: { gt: 0 } });
 
   const sort = SORTS.some((s) => s.value === params.sort) ? params.sort! : terms.length ? "relevance" : "newest";
-  const page = Math.max(1, Number(params.page) || 1);
+  const total = await db.product.count({ where });
+  // an old link can point past the last page once filters or stock change
+  const page = Math.min(Math.max(1, Number(params.page) || 1), Math.max(1, Math.ceil(total / PAGE_SIZE)));
 
   const orderBy: Prisma.ProductOrderByWithRelationInput[] =
     sort === "price_asc"
@@ -141,7 +149,7 @@ export async function searchProducts(params: SearchParams) {
       : sort === "price_desc"
         ? [{ pricePaise: "desc" }]
         : sort === "rating"
-          ? [{ ratingAvg: "desc" }, { ratingCount: "desc" }]
+          ? [{ ratingAvg: "desc" }, { ratingCount: "desc" }, { publishedAt: "desc" }]
           : [{ publishedAt: "desc" }];
 
   if (sort === "relevance" && terms.length) {
@@ -168,16 +176,13 @@ export async function searchProducts(params: SearchParams) {
     return { items: slice, total: scored.length, page, pageSize: PAGE_SIZE, sort };
   }
 
-  const [items, total] = await Promise.all([
-    db.product.findMany({
-      where,
-      orderBy,
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-      select: cardSelect,
-    }),
-    db.product.count({ where }),
-  ]);
+  const items = await db.product.findMany({
+    where,
+    orderBy,
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
+    select: cardSelect,
+  });
   return { items: items.map(toCard), total, page, pageSize: PAGE_SIZE, sort };
 }
 

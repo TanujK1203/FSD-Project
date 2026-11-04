@@ -7,6 +7,7 @@ import { themeInitScript } from "@/components/ThemeSwitch";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
 import "@/styles/components.css";
+import "@/styles/motion.css";
 
 const albert = Albert_Sans({
   subsets: ["latin", "latin-ext"],
@@ -31,7 +32,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={albert.variable} suppressHydrationWarning>
+    <html lang="en-IN" className={albert.variable} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

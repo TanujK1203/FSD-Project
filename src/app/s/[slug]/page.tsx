@@ -5,6 +5,7 @@ import { getStorePage } from "@/server/catalog";
 import { categoryLabel } from "@/lib/categories";
 import { initials } from "@/lib/text";
 import { ProductGrid } from "@/components/ProductCard";
+import { ScrollRow } from "@/components/ScrollRow";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ category?: string; sort?: string }> };
 
@@ -46,21 +47,23 @@ export default async function StorePage({ params, searchParams }: Props) {
       {store.bio && <p className="muted" style={{ maxWidth: "65ch" }}>{store.bio}</p>}
 
       {categories.length > 1 && (
-        <nav className="chips" aria-label="Store categories">
-          <Link href={`/s/${store.slug}`} className="chip" aria-current={!sp.category ? "true" : undefined}>
-            All
-          </Link>
-          {categories.map((c) => (
-            <Link
-              key={c.category}
-              href={`/s/${store.slug}?category=${c.category}`}
-              className="chip"
-              aria-current={sp.category === c.category ? "true" : undefined}
-            >
-              {categoryLabel(c.category)}
+        <ScrollRow label="categories">
+          <nav className="chips" aria-label="Store categories">
+            <Link href={`/s/${store.slug}`} className="chip" aria-current={!sp.category ? "true" : undefined}>
+              All
             </Link>
-          ))}
-        </nav>
+            {categories.map((c) => (
+              <Link
+                key={c.category}
+                href={`/s/${store.slug}?category=${c.category}`}
+                className="chip"
+                aria-current={sp.category === c.category ? "true" : undefined}
+              >
+                {categoryLabel(c.category)}
+              </Link>
+            ))}
+          </nav>
+        </ScrollRow>
       )}
 
       {products.length ? (

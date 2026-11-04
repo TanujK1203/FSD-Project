@@ -1,0 +1,147 @@
+/* Scrolling and movement. Everything that travels sits behind no-preference,
+   so visitors who ask for reduced motion get the page without it. */
+
+/* ---------- horizontal rows ---------- */
+
+.scrollrow {
+  position: relative;
+  min-width: 0;
+}
+
+.scrollrow > :first-child,
+.gallery__thumbs {
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--gutter);
+  overscroll-behavior-x: contain;
+}
+
+.scrollrow > :first-child > *,
+.gallery__thumbs > * {
+  scroll-snap-align: start;
+}
+
+.scrollrow__arrow {
+  display: none;
+  position: absolute;
+  top: 50%;
+  width: 34px;
+  height: 34px;
+  margin-top: -17px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  transition:
+    background-color var(--dur) var(--ease-out),
+    scale var(--dur) var(--ease-out);
+}
+
+.scrollrow__arrow--prev {
+  left: -6px;
+}
+
+.scrollrow__arrow--prev svg {
+  rotate: 180deg;
+}
+
+.scrollrow__arrow--next {
+  right: -6px;
+}
+
+.scrollrow__arrow:hover {
+  background: var(--surface-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .scrollrow__arrow:not([hidden]) {
+    display: grid;
+    animation: fade-in var(--dur) var(--ease-out);
+  }
+}
+
+/* ---------- press and hover ---------- */
+
+.btn {
+  transition:
+    background-color var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
+    scale 120ms var(--ease-out);
+}
+
+.chip {
+  transition:
+    background-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out),
+    scale 120ms var(--ease-out);
+}
+
+.btn:active:not(:disabled),
+.chip:active,
+.scrollrow__arrow:active {
+  scale: 0.97;
+}
+
+.tabbar__icon {
+  transition:
+    background-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out);
+}
+
+.subnav a {
+  transition:
+    color var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+}
+
+.pcard {
+  transition:
+    border-color var(--dur) var(--ease-out),
+    translate 200ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pcard:hover {
+    border-color: var(--line-strong);
+    translate: 0 -2px;
+  }
+}
+
+/* ---------- movement ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  html,
+  .scrollrow > :first-child,
+  .gallery__thumbs {
+    scroll-behavior: smooth;
+  }
+
+  html {
+    scroll-padding-top: calc(var(--header-h) + var(--s4));
+  }
+
+  .page-enter {
+    animation: rise 220ms var(--ease-out);
+  }
+
+  .gallery__main img {
+    animation: fade-in 220ms var(--ease-out);
+  }
+
+  /* cards and sections ease in as they scroll up; browsers without scroll timelines just show them */
+  @supports (animation-timeline: view()) {
+    .grid > .pcard,
+    .reveal {
+      animation: rise linear backwards;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90px;
+    }
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}

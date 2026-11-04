@@ -9,7 +9,7 @@ export function Gallery({ images, title }: { images: { url: string; alt: string 
   return (
     <div className="gallery">
       <div className="gallery__main">
-        <img src={current.url} alt={current.alt || title} referrerPolicy="no-referrer" />
+        <img key={current.url} src={current.url} alt={current.alt || title} referrerPolicy="no-referrer" />
       </div>
       {images.length > 1 && (
         <div className="gallery__thumbs" role="list">

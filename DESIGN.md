@@ -2,7 +2,7 @@
 
 A mobile-first shopping app where sellers' product photos carry the colour and the interface stays quiet.
 
-Intensity dials: layout variance 4/10, motion 3/10, density 6/10.
+Intensity dials: layout variance 4/10, motion 5/10, density 6/10.
 
 ## Tokens
 
@@ -26,12 +26,12 @@ Albert Sans, one family, weights 400 to 800. Scale steps of about 1.25 (12, 13, 
 ## Shape and spacing
 
 - Radius: 4px (tags), 6px (cards, inputs, buttons), pill only for chips and tab icons.
-- No shadows. Hairline borders separate things.
+- No shadows, with one exception: the card pop-up has a soft silver edge (white in dark mode). Hairline borders separate everything else.
 - Spacing on a 4px base: 4, 8, 12, 16, 24, 32, 48, 64.
 
 ## Motion
 
-Only for state changes: sheet opening, cart count changing, colour on hover. 150 to 200ms ease-out. Everything respects `prefers-reduced-motion`.
+All in `src/styles/motion.css`. Small and quiet: smooth page and row scrolling, rows that snap, a short page entrance, cards easing in as they scroll up, a 2px card lift on hover, a slight press on buttons and chips, and photos crossfading in the gallery. Under 250ms ease-out. Anything that travels is switched off by `prefers-reduced-motion`.
 
 ## Rules (checked by `npm run check:slop`)
 

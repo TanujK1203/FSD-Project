@@ -2,12 +2,13 @@ import Link from "next/link";
 import type { CardProduct } from "@/server/catalog";
 import { discountPercent, formatPaise } from "@/lib/money";
 import { AddButton } from "./AddButton";
+import { CardPeek } from "./CardPeek";
 import { Rating } from "./Rating";
 
 export function ProductCard({ p, priority = false }: { p: CardProduct; priority?: boolean }) {
   const off = discountPercent(p.pricePaise, p.compareAtPaise);
   return (
-    <article className="pcard">
+    <CardPeek price={formatPaise(p.pricePaise)} storeName={p.storeName} ratingAvg={p.ratingAvg} ratingCount={p.ratingCount}>
       <div className="pcard__media">
         {p.imageUrl ? (
           <img
@@ -43,7 +44,7 @@ export function ProductCard({ p, priority = false }: { p: CardProduct; priority?
           )}
         </div>
       </div>
-    </article>
+    </CardPeek>
   );
 }
 

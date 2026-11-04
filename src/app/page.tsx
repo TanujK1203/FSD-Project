@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CATEGORIES } from "@/lib/categories";
 import { getHome } from "@/server/catalog";
 import { ProductGrid } from "@/components/ProductCard";
+import { ScrollRow } from "@/components/ScrollRow";
 import { SearchBox } from "@/components/SearchBox";
 import { SITE } from "@/config";
 import { initials } from "@/lib/text";
@@ -19,34 +20,38 @@ export default async function Home() {
           <SearchBox />
         </div>
         {cats.length > 0 && (
-          <nav className="chips" aria-label="Categories">
-            {cats.map((c) => (
-              <Link key={c.slug} href={`/search?category=${c.slug}`} className="chip">
-                {c.label}
-              </Link>
-            ))}
-          </nav>
+          <ScrollRow label="categories">
+            <nav className="chips" aria-label="Categories">
+              {cats.map((c) => (
+                <Link key={c.slug} href={`/search?category=${c.slug}`} className="chip">
+                  {c.label}
+                </Link>
+              ))}
+            </nav>
+          </ScrollRow>
         )}
       </div>
 
       {stores.length > 0 && (
-        <section aria-labelledby="stores-h">
+        <section aria-labelledby="stores-h" className="reveal">
           <div className="section-head">
             <h2 id="stores-h">Stores</h2>
           </div>
-          <ul className={styles.stores}>
-            {stores.map((s) => (
-              <li key={s.slug}>
-                <Link href={`/s/${s.slug}`} className={styles.store}>
-                  <span className="avatar avatar--lg">
-                    {s.logoUrl ? <img src={s.logoUrl} alt="" referrerPolicy="no-referrer" /> : initials(s.name)}
-                  </span>
-                  <span className={styles.storeName}>{s.name}</span>
-                  <span className="xsmall muted num">{s._count.products} items</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <ScrollRow label="stores">
+            <ul className={styles.stores}>
+              {stores.map((s) => (
+                <li key={s.slug}>
+                  <Link href={`/s/${s.slug}`} className={styles.store}>
+                    <span className="avatar avatar--lg">
+                      {s.logoUrl ? <img src={s.logoUrl} alt="" referrerPolicy="no-referrer" /> : initials(s.name)}
+                    </span>
+                    <span className={styles.storeName}>{s.name}</span>
+                    <span className="xsmall muted num">{s._count.products} items</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </ScrollRow>
         </section>
       )}
 
@@ -65,7 +70,7 @@ export default async function Home() {
         )}
       </section>
 
-      <section className={styles.sell}>
+      <section className={`reveal ${styles.sell}`}>
         <div>
           <h2>Sell on {SITE.name}</h2>
           <p className="muted">

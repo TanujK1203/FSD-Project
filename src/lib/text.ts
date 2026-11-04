@@ -33,6 +33,17 @@ export function tokens(input: string): string[] {
     .filter((t) => t.length > 1 && !STOPWORDS.has(t));
 }
 
+const SEARCH_FILLER = new Set(["an", "and", "the", "for", "with", "of", "in", "on", "to", "by"]);
+
+/** Words a shopper typed. Unlike tokens(), keeps meaningful words such as "women" or "set". */
+export function searchWords(input: string): string[] {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]+/g, " ")
+    .split(/\s+/)
+    .filter((t) => t.length > 1 && !SEARCH_FILLER.has(t));
+}
+
 /** Strip HTML tags into tidy plain text: one item per line, bullets kept, no runs of blank lines. */
 export function htmlToText(html: string | null | undefined): string {
   if (!html) return "";
